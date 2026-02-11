@@ -18,6 +18,7 @@ interface AddTaskDialogProps {
     priority: TaskPriority;
     due_date: string | null;
     tags: string[];
+    time_estimate: number | null;
   }) => Promise<void>;
   editingTask?: Task | null;
 }
@@ -30,13 +31,14 @@ export default function AddTaskDialog({ open, onOpenChange, onSubmit, editingTas
   const [dueDate, setDueDate] = useState(editingTask?.due_date || "");
   const [tags, setTags] = useState<string[]>(editingTask?.tags || []);
   const [tagInput, setTagInput] = useState("");
+  const [timeEstimate, setTimeEstimate] = useState<string>(editingTask?.time_estimate?.toString() || "");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     setSubmitting(true);
-    await onSubmit({ title, description, status, priority, due_date: dueDate || null, tags });
+    await onSubmit({ title, description, status, priority, due_date: dueDate || null, tags, time_estimate: timeEstimate ? parseInt(timeEstimate) : null });
     setSubmitting(false);
     resetForm();
     onOpenChange(false);
@@ -44,7 +46,7 @@ export default function AddTaskDialog({ open, onOpenChange, onSubmit, editingTas
 
   const resetForm = () => {
     if (!editingTask) {
-      setTitle(""); setDescription(""); setStatus("todo"); setPriority("medium"); setDueDate(""); setTags([]); setTagInput("");
+      setTitle(""); setDescription(""); setStatus("todo"); setPriority("medium"); setDueDate(""); setTags([]); setTagInput(""); setTimeEstimate("");
     }
   };
 
@@ -94,6 +96,11 @@ export default function AddTaskDialog({ open, onOpenChange, onSubmit, editingTas
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Due Date</label>
             <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Time Estimate (min)</label>
+            <Input type="number" min="0" placeholder="e.g. 30" value={timeEstimate} onChange={(e) => setTimeEstimate(e.target.value)} />
           </div>
 
           <div>
