@@ -6,6 +6,7 @@ import TopBar from "@/components/layout/TopBar";
 import KanbanBoard from "@/components/kanban/KanbanBoard";
 import AddTaskDialog from "@/components/kanban/AddTaskDialog";
 import AIChatPanel from "@/components/chat/AIChatPanel";
+import AIChatFullPage from "@/components/chat/AIChatFullPage";
 import { useTasks } from "@/hooks/useTasks";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -14,6 +15,7 @@ export default function Index() {
   const { user, loading } = useAuth();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeView, setActiveView] = useState<"board" | "assistant">("board");
   const { addTask } = useTasks();
 
   if (loading) {
@@ -37,12 +39,17 @@ export default function Index() {
 
   return (
     <div className="flex h-screen bg-background">
-      <AppSidebar />
+      <AppSidebar activeView={activeView} onViewChange={setActiveView} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopBar onAddTask={() => setAddDialogOpen(true)} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-        <KanbanBoard />
+        {activeView === "board" && (
+          <>
+            <TopBar onAddTask={() => setAddDialogOpen(true)} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+            <KanbanBoard />
+          </>
+        )}
+        {activeView === "assistant" && <AIChatFullPage />}
       </div>
-      <AIChatPanel />
+      {activeView === "board" && <AIChatPanel />}
 
       <AddTaskDialog
         open={addDialogOpen}
