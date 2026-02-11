@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import AppSidebar from "@/components/layout/AppSidebar";
+import AppSidebar, { ViewType } from "@/components/layout/AppSidebar";
 import TopBar from "@/components/layout/TopBar";
+import CalendarSidebar from "@/components/layout/CalendarSidebar";
 import KanbanBoard from "@/components/kanban/KanbanBoard";
 import AddTaskDialog from "@/components/kanban/AddTaskDialog";
 import AIChatPanel from "@/components/chat/AIChatPanel";
 import AIChatFullPage from "@/components/chat/AIChatFullPage";
+import HomeView from "@/components/views/HomeView";
+import DashboardView from "@/components/views/DashboardView";
+import AnalyticsView from "@/components/views/AnalyticsView";
+import ChatView from "@/components/views/ChatView";
+import TimeManageView from "@/components/views/TimeManageView";
+import SettingsView from "@/components/views/SettingsView";
 import { useTasks } from "@/hooks/useTasks";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -15,7 +22,7 @@ export default function Index() {
   const { user, loading } = useAuth();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeView, setActiveView] = useState<"board" | "assistant">("board");
+  const [activeView, setActiveView] = useState<ViewType>("home");
   const { addTask } = useTasks();
 
   if (loading) {
@@ -37,6 +44,8 @@ export default function Index() {
     }
   };
 
+  const showCalendar = activeView === "home" || activeView === "board" || activeView === "dashboard";
+
   return (
     <div className="flex h-screen bg-background">
       <AppSidebar activeView={activeView} onViewChange={setActiveView} />
@@ -47,8 +56,15 @@ export default function Index() {
             <KanbanBoard />
           </>
         )}
-        {activeView === "assistant" && <AIChatFullPage />}
+        {activeView === "home" && <HomeView />}
+        {activeView === "dashboard" && <DashboardView />}
+        {activeView === "analytics" && <AnalyticsView />}
+        {activeView === "chat" && <ChatView />}
+        {activeView === "time-manage" && <TimeManageView />}
+        {activeView === "ai-assistant" && <AIChatFullPage />}
+        {activeView === "settings" && <SettingsView />}
       </div>
+      {showCalendar && <CalendarSidebar />}
       {activeView === "board" && <AIChatPanel />}
 
       <AddTaskDialog

@@ -1,22 +1,29 @@
-import { useState } from "react";
-import { LayoutDashboard, LogOut, User, Bot } from "lucide-react";
+import { Home, LayoutDashboard, BarChart3, MessageCircle, Clock, Settings, LogOut, User, Bot } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+export type ViewType = "home" | "board" | "dashboard" | "analytics" | "chat" | "time-manage" | "ai-assistant" | "settings";
+
 interface AppSidebarProps {
-  activeView: "board" | "assistant";
-  onViewChange: (view: "board" | "assistant") => void;
+  activeView: ViewType;
+  onViewChange: (view: ViewType) => void;
 }
+
+const navItems: { id: ViewType; label: string; icon: React.ElementType }[] = [
+  { id: "home", label: "Home", icon: Home },
+  { id: "board", label: "Board", icon: LayoutDashboard },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "chat", label: "Chat", icon: MessageCircle },
+  { id: "time-manage", label: "Time Manage", icon: Clock },
+  { id: "ai-assistant", label: "AI Assistant", icon: Bot },
+  { id: "settings", label: "Settings", icon: Settings },
+];
 
 export default function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   const { user, signOut } = useAuth();
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "User";
-
-  const navItems = [
-    { id: "board" as const, label: "Board", icon: LayoutDashboard },
-    { id: "assistant" as const, label: "AI Assistant", icon: Bot },
-  ];
 
   return (
     <aside className="flex h-screen w-[240px] shrink-0 flex-col border-r bg-sidebar">
@@ -29,7 +36,7 @@ export default function AppSidebar({ activeView, onViewChange }: AppSidebarProps
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 space-y-1 px-3 py-2">
+      <nav className="flex-1 space-y-1 px-3 py-2 overflow-y-auto">
         {navItems.map((item) => (
           <button
             key={item.id}
