@@ -4,7 +4,7 @@ import { Task, TaskPriority } from "@/hooks/useTasks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Calendar, MoreHorizontal, Pencil, Trash2, GripVertical } from "lucide-react";
+import { Calendar, Clock, MoreHorizontal, Pencil, Trash2, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -89,10 +89,20 @@ export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
         ))}
       </div>
 
-      {task.due_date && (
-        <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-          <Calendar className="h-3 w-3" />
-          {format(new Date(task.due_date), "MMM d, yyyy")}
+      {(task.due_date || task.time_estimate) && (
+        <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+          {task.due_date && (
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {format(new Date(task.due_date), "MMM d, yyyy")}
+            </span>
+          )}
+          {task.time_estimate && (
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {task.time_estimate}m
+            </span>
+          )}
         </div>
       )}
     </div>
