@@ -1,1 +1,0 @@
-ALTER TABLE public.tasks ADD COLUMN time_estimate integer DEFAULT NULL;

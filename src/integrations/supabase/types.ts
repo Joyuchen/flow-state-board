@@ -51,7 +51,6 @@ export type Database = {
           priority: Database["public"]["Enums"]["task_priority"]
           status: Database["public"]["Enums"]["task_status"]
           tags: string[] | null
-          time_estimate: number | null
           title: string
           updated_at: string
           user_id: string
@@ -65,7 +64,6 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           status?: Database["public"]["Enums"]["task_status"]
           tags?: string[] | null
-          time_estimate?: number | null
           title: string
           updated_at?: string
           user_id: string
@@ -79,7 +77,6 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           status?: Database["public"]["Enums"]["task_status"]
           tags?: string[] | null
-          time_estimate?: number | null
           title?: string
           updated_at?: string
           user_id?: string

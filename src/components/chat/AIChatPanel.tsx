@@ -6,10 +6,6 @@ import { MessageCircle, X, Send, Loader2, Bot, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import { useTasks } from "@/hooks/useTasks";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -22,8 +18,6 @@ export default function AIChatPanel() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { tasks } = useTasks();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -40,16 +34,12 @@ export default function AIChatPanel() {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
-    // Build task context with IDs so the AI can reference them
+    // Build task context
     const taskSummary = tasks.length > 0
-      ? `\n\nUser's current tasks:\n${tasks.map((t) => `- [${t.status}] "${t.title}" (id: ${t.id}, priority: ${t.priority}${t.due_date ? `, due: ${t.due_date}` : ""}${t.tags?.length ? `, tags: ${t.tags.join(", ")}` : ""})`).join("\n")}`
+      ? `\n\nUser's current tasks:\n${tasks.map((t) => `- [${t.status}] "${t.title}" (priority: ${t.priority}${t.due_date ? `, due: ${t.due_date}` : ""})`).join("\n")}`
       : "";
 
     const allMessages = [...messages, userMsg];
-
-    // Get session token for auth
-    const { data: { session } } = await supabase.auth.getSession();
-    const accessToken = session?.access_token || "";
 
     let assistantSoFar = "";
     const upsertAssistant = (chunk: string) => {
@@ -68,8 +58,7 @@ export default function AIChatPanel() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({ messages: allMessages, taskContext: taskSummary }),
       });
@@ -90,7 +79,6 @@ export default function AIChatPanel() {
       const decoder = new TextDecoder();
       let textBuffer = "";
       let streamDone = false;
-      let toolActionsDetected = false;
 
       while (!streamDone) {
         const { done, value } = await reader.read();
@@ -108,11 +96,6 @@ export default function AIChatPanel() {
           if (jsonStr === "[DONE]") { streamDone = true; break; }
           try {
             const parsed = JSON.parse(jsonStr);
-            // Check for tool action notification
-            if (parsed.tool_actions) {
-              toolActionsDetected = true;
-              continue;
-            }
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) upsertAssistant(content);
           } catch {
@@ -133,20 +116,10 @@ export default function AIChatPanel() {
           if (jsonStr === "[DONE]") continue;
           try {
             const parsed = JSON.parse(jsonStr);
-            if (parsed.tool_actions) {
-              toolActionsDetected = true;
-              continue;
-            }
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) upsertAssistant(content);
           } catch {}
         }
-      }
-
-      // If tools were executed, refresh the board
-      if (toolActionsDetected) {
-        queryClient.invalidateQueries({ queryKey: ["tasks", user?.id] });
-        toast.success("Board updated by AI");
       }
     } catch (e) {
       console.error(e);
@@ -195,7 +168,7 @@ export default function AIChatPanel() {
                 </div>
                 <div>
                   <h3 className="font-heading text-sm font-semibold">AI Assistant</h3>
-                  <p className="text-[10px] text-muted-foreground">I can manage your tasks too!</p>
+                  <p className="text-[10px] text-muted-foreground">Ask me anything about your tasks</p>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="h-8 w-8">
@@ -209,7 +182,7 @@ export default function AIChatPanel() {
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <Bot className="mb-3 h-10 w-10 text-muted-foreground/30" />
                   <p className="text-sm font-medium text-muted-foreground">How can I help you today?</p>
-                  <p className="mt-1 text-xs text-muted-foreground/60">Try: "Create a task to review the homepage design"</p>
+                  <p className="mt-1 text-xs text-muted-foreground/60">I can help with your tasks or answer any question</p>
                 </div>
               )}
               {messages.map((msg, i) => (
@@ -248,7 +221,7 @@ export default function AIChatPanel() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Try: Create a high-priority task..."
+                  placeholder="Type a message..."
                   className="flex-1"
                   disabled={isLoading}
                 />
